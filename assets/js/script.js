@@ -29,14 +29,20 @@ var taskFormHandler = function(event) {
         completeEditTask(taskNameInput, taskTypeInput, taskId);
     }
     else {
-    // Load object with form input
+        // Load object with form input
         var taskDataObject = {
             name: taskNameInput,
             type: taskTypeInput,
-            status: "to do"
+            status: "to do",
+            id: taskIdCounter
         };
-
+        taskIdCounter++;
         createTaskEl(taskDataObject);
+        // Add task to tasks list
+        tasks.push(taskDataObject);
+        saveTasks();
+        // Increment task counter
+        taskIdCounter++;
     }
 }
 
@@ -60,7 +66,7 @@ var createTaskEl = function(taskDataObj) {
     listItemEl.className = "task-item";
 
     // add task id as a custom attribue
-    listItemEl.setAttribute("data-task-id",taskIdCounter);
+    listItemEl.setAttribute("data-task-id",taskDataObj.id);
     
     // Create div to hold task info add to list item
     var taskInfoEl = document.createElement("div");
@@ -73,17 +79,16 @@ var createTaskEl = function(taskDataObj) {
     listItemEl.appendChild(taskInfoEl);
 
     // Add task actions
-    listItemEl.appendChild(createTaskActions(taskIdCounter));
+    listItemEl.appendChild(createTaskActions(taskDataObj.id));
 
     // Append li to ul
-    tasksToDoEl.appendChild(listItemEl);
+    if (taskDataObj.status === "to do")
+        tasksToDoEl.appendChild(listItemEl);
+    if (taskDataObj.status === "in progress")
+        tasksInProgressEl.appendChild(listItemEl);
+    if (taskDataObj.status === "completed")
+        tasksCompletedEl.appendChild(listItemEl);
 
-    // Add task to tasks list
-    taskDataObj.id = taskIdCounter;
-    tasks.push(taskDataObj);
-    saveTasks();
-    // Increment task counter
-    taskIdCounter++;
 }
 
 var createTaskActions = function(taskId) {
@@ -187,6 +192,21 @@ var taskStatusChangeHandler = function(event) {
 
 var saveTasks = function () {
     localStorage.setItem("tasks",JSON.stringify(tasks));
+}
+
+var loadTasks = function () {
+    tasks = localStorage.getItem("tasks",tasks);
+    if (!tasks) {
+        tasks = [];
+        return false;
+    }
+    tasks = JSON.parse(tasks);
+    var l = tasks.length;
+    
+    for (var i=0;i<l;i++) {
+        createTaskEl(tasks[i]);
+    }
+    taskIdCounter = i;
 }
 
 formEl.addEventListener("submit", taskFormHandler);
